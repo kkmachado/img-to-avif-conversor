@@ -18,14 +18,28 @@ Certifique-se de que seu código está em um repositório Git (GitHub, GitLab, e
 
 1. Acesse seu painel Easypanel
 2. Clique em "Create Application"
-3. Selecione "Node.js" como template
+
+#### Opção A: Dockerfile (Recomendado)
+3. Selecione "Dockerfile" como template
 4. Configure os seguintes parâmetros:
 
-#### Configurações Básicas
+##### Configurações Básicas
 - **Name**: `conversor-avif`
 - **Repository**: URL do seu repositório Git
 - **Branch**: `main` (ou sua branch principal)
-- **Build Command**: `npm ci && npm run build`
+- **Internal Service Port**: `4173`
+- **Protocol**: `HTTP`
+
+#### Opção B: Nixpacks (Alternativa)
+3. Selecione "Nixpacks" como template
+4. Configure os seguintes parâmetros:
+
+##### Configurações Básicas
+- **Name**: `conversor-avif`
+- **Repository**: URL do seu repositório Git
+- **Branch**: `main` (ou sua branch principal)
+- **Install Command**: `npm install`
+- **Build Command**: `npm run build`
 - **Start Command**: `npm run preview`
 - **Internal Service Port**: `4173`
 - **Protocol**: `HTTP`
@@ -136,7 +150,12 @@ return [{ json: { convertedFiles } }];
 
 ## Troubleshooting
 
-### Build Errors
+### Build Errors com EBUSY
+Se encontrar erro `EBUSY: resource busy or locked` no Nixpacks:
+- **Solução 1**: Use "Dockerfile" em vez de "Nixpacks" (recomendado)
+- **Solução 2**: Use `npm install` em vez de `npm ci` no Nixpacks
+
+### Outros Build Errors
 - Verifique se todas as dependências estão no `package.json`
 - Execute `npm install` e `npm run build` localmente primeiro
 
