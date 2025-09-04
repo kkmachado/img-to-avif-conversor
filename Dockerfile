@@ -19,4 +19,4 @@ RUN npm run build
 EXPOSE 4173
 
 # Start the application
-CMD ["npm", "run", "preview"]
+CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "4173"]
