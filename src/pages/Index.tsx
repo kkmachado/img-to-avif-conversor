@@ -19,6 +19,7 @@ interface ConversionFile {
   progress: number;
   downloadUrl?: string;
   errorMessage?: string;
+  convertedSize?: number;
 }
 
 const Index = () => {
@@ -113,13 +114,30 @@ const Index = () => {
         if (Array.isArray(result) && result.length > 0) {
           const convertedFile = result[0]; // First (and only) result
           
+          // Get converted file size from bytes field or estimate from secure_url
+          let convertedSize = convertedFile.bytes;
+          
+          // If bytes not available, try to get file size via HEAD request
+          if (!convertedSize && convertedFile.secure_url) {
+            try {
+              const sizeResponse = await fetch(convertedFile.secure_url, { method: 'HEAD' });
+              const contentLength = sizeResponse.headers.get('content-length');
+              if (contentLength) {
+                convertedSize = parseInt(contentLength);
+              }
+            } catch (e) {
+              console.log('Could not get file size:', e);
+            }
+          }
+          
           setConversionFiles(prev => ({
             ...prev,
             [file.id]: {
               ...prev[file.id],
               status: 'completed',
               progress: 100,
-              downloadUrl: convertedFile.secure_url
+              downloadUrl: convertedFile.secure_url,
+              convertedSize: convertedSize
             }
           }));
           
@@ -270,6 +288,7 @@ const Index = () => {
                       progress={conversionData.progress}
                       downloadUrl={conversionData.downloadUrl}
                       errorMessage={conversionData.errorMessage}
+                      convertedSize={conversionData.convertedSize}
                       onRemove={removeFile}
                       onDownload={handleDownload}
                     />

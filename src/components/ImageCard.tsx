@@ -18,6 +18,7 @@ interface ImageCardProps {
   progress: number;
   downloadUrl?: string;
   errorMessage?: string;
+  convertedSize?: number;
   onRemove: (id: string) => void;
   onDownload: (id: string, url: string) => void;
 }
@@ -28,6 +29,7 @@ export const ImageCard = ({
   progress,
   downloadUrl,
   errorMessage,
+  convertedSize,
   onRemove,
   onDownload
 }: ImageCardProps) => {
@@ -61,6 +63,27 @@ export const ImageCard = ({
     }
   };
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+  };
+
+  const getSizeComparison = () => {
+    if (!convertedSize || conversionStatus !== 'completed') return null;
+    
+    const originalSize = uploadedFile.file.size;
+    const reduction = originalSize - convertedSize;
+    const reductionPercent = ((reduction / originalSize) * 100).toFixed(1);
+    
+    return {
+      original: formatFileSize(originalSize),
+      converted: formatFileSize(convertedSize),
+      reduction: formatFileSize(reduction),
+      percent: reductionPercent
+    };
+  };
+
   const getStatusColor = () => {
     switch (conversionStatus) {
       case 'completed':
@@ -73,6 +96,8 @@ export const ImageCard = ({
         return 'border-border';
     }
   };
+
+  const sizeComparison = getSizeComparison();
 
   return (
     <Card className={cn(
@@ -104,9 +129,15 @@ export const ImageCard = ({
           <div className="flex items-start justify-between mb-2">
             <div className="min-w-0 flex-1">
               <p className="font-medium text-sm truncate">{uploadedFile.file.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
-              </p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>Original: {formatFileSize(uploadedFile.file.size)}</p>
+                {sizeComparison && (
+                  <p className="text-success font-medium">
+                    AVIF: {sizeComparison.converted} • 
+                    Economia: {sizeComparison.reduction} ({sizeComparison.percent}%)
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
