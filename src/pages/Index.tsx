@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ImageCard, ConversionStatus } from '@/components/ImageCard';
+import { ImageUpload } from '@/components/ImageUpload';
+import { ConversionProgress, ConversionStatus } from '@/components/ConversionProgress';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Sparkles, Upload } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Zap, Sparkles } from 'lucide-react';
 
 interface UploadedFile {
   file: File;
@@ -15,49 +14,21 @@ interface UploadedFile {
 
 interface ConversionFile {
   id: string;
+  name: string;
   status: ConversionStatus;
   progress: number;
   downloadUrl?: string;
   errorMessage?: string;
-  convertedSize?: number;
 }
 
 const Index = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [conversionFiles, setConversionFiles] = useState<{[key: string]: ConversionFile}>({});
+  const [conversionFiles, setConversionFiles] = useState<ConversionFile[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   // Webhook URL configurado diretamente no código
   const WEBHOOK_URL = 'https://marketing-n8n.qqbqnt.easypanel.host/webhook/conversion';
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: (acceptedFiles: File[]) => {
-      const newFiles = acceptedFiles.map(file => ({
-        file,
-        id: Math.random().toString(36).substr(2, 9),
-        preview: URL.createObjectURL(file)
-      }));
-      
-      setFiles(prev => [...prev, ...newFiles]);
-    },
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg']
-    },
-    multiple: true
-  });
-
-  const removeFile = (id: string) => {
-    const updatedFiles = files.filter(file => file.id !== id);
-    setFiles(updatedFiles);
-    
-    // Remove conversion status if exists
-    setConversionFiles(prev => {
-      const newConversions = { ...prev };
-      delete newConversions[id];
-      return newConversions;
-    });
-  };
 
   const convertImages = async () => {
     if (files.length === 0) {
@@ -72,16 +43,14 @@ const Index = () => {
     setIsProcessing(true);
     
     // Initialize conversion files
-    const initialConversions: {[key: string]: ConversionFile} = {};
-    files.forEach(file => {
-      initialConversions[file.id] = {
-        id: file.id,
-        status: 'pending',
-        progress: 0
-      };
-    });
+    const initialConversionFiles = files.map(file => ({
+      id: file.id,
+      name: file.file.name,
+      status: 'pending' as ConversionStatus,
+      progress: 0
+    }));
     
-    setConversionFiles(initialConversions);
+    setConversionFiles(initialConversionFiles);
 
     // Process files one by one
     let successCount = 0;
@@ -91,10 +60,12 @@ const Index = () => {
       
       try {
         // Update status to processing for current file
-        setConversionFiles(prev => ({
-          ...prev,
-          [file.id]: { ...prev[file.id], status: 'processing', progress: 50 }
-        }));
+        setConversionFiles(prev => 
+          prev.map(f => f.id === file.id 
+            ? { ...f, status: 'processing' as ConversionStatus, progress: 50 }
+            : f
+          )
+        );
 
         const formData = new FormData();
         formData.append('image', file.file); // Sending single file
@@ -114,32 +85,17 @@ const Index = () => {
         if (Array.isArray(result) && result.length > 0) {
           const convertedFile = result[0]; // First (and only) result
           
-          // Get converted file size from bytes field or estimate from secure_url
-          let convertedSize = convertedFile.bytes;
-          
-          // If bytes not available, try to get file size via HEAD request
-          if (!convertedSize && convertedFile.secure_url) {
-            try {
-              const sizeResponse = await fetch(convertedFile.secure_url, { method: 'HEAD' });
-              const contentLength = sizeResponse.headers.get('content-length');
-              if (contentLength) {
-                convertedSize = parseInt(contentLength);
-              }
-            } catch (e) {
-              console.log('Could not get file size:', e);
-            }
-          }
-          
-          setConversionFiles(prev => ({
-            ...prev,
-            [file.id]: {
-              ...prev[file.id],
-              status: 'completed',
-              progress: 100,
-              downloadUrl: convertedFile.secure_url,
-              convertedSize: convertedSize
-            }
-          }));
+          setConversionFiles(prev =>
+            prev.map(f => f.id === file.id 
+              ? {
+                  ...f,
+                  status: 'completed' as ConversionStatus,
+                  progress: 100,
+                  downloadUrl: convertedFile.secure_url
+                }
+              : f
+            )
+          );
           
           successCount++;
         } else {
@@ -149,14 +105,16 @@ const Index = () => {
       } catch (error) {
         console.error(`Erro na conversão do arquivo ${file.file.name}:`, error);
         
-        setConversionFiles(prev => ({
-          ...prev,
-          [file.id]: {
-            ...prev[file.id],
-            status: 'error',
-            errorMessage: error instanceof Error ? error.message : 'Erro desconhecido'
-          }
-        }));
+        setConversionFiles(prev =>
+          prev.map(f => f.id === file.id 
+            ? {
+                ...f,
+                status: 'error' as ConversionStatus,
+                errorMessage: error instanceof Error ? error.message : 'Erro desconhecido'
+              }
+            : f
+          )
+        );
       }
 
       // Small delay between requests to avoid overwhelming the server
@@ -217,7 +175,7 @@ const Index = () => {
 
   const resetAll = () => {
     setFiles([]);
-    setConversionFiles({});
+    setConversionFiles([]);
     setIsProcessing(false);
   };
 
@@ -240,60 +198,14 @@ const Index = () => {
         </div>
 
         <div className="space-y-8">
-          {/* Image Upload Area */}
-          <Card 
-            {...getRootProps()} 
-            className={cn(
-              "border-2 border-dashed border-border bg-gradient-subtle p-6 text-center cursor-pointer transition-all duration-300",
-              "hover:border-primary hover:shadow-glow",
-              isDragActive && "border-primary bg-gradient-primary/10 shadow-glow"
-            )}
-          >
-            <input {...getInputProps()} />
-            <div className="flex flex-col items-center space-y-3">
-              <div className="rounded-full bg-primary/10 p-3">
-                <Upload className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-base font-semibold">
-                  {isDragActive ? "Solte as imagens aqui" : "Clique aqui ou arraste imagens"}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Formatos aceitos: PNG, JPG, JPEG
-                </p>
-              </div>
-            </div>
+          {/* Image Upload */}
+          <Card className="p-6 bg-card/50 backdrop-blur">
+            <h2 className="text-xl font-semibold mb-4">Upload de Imagens</h2>
+            <ImageUpload 
+              files={files}
+              onFilesSelected={setFiles}
+            />
           </Card>
-
-          {/* Images List */}
-          {files.length > 0 && (
-            <Card className="p-6 bg-card/50 backdrop-blur">
-              <h2 className="text-xl font-semibold mb-4">Imagens Selecionadas</h2>
-              <div className="space-y-3">
-                {files.map((file) => {
-                  const conversionData = conversionFiles[file.id] || { 
-                    id: file.id, 
-                    status: 'idle' as ConversionStatus, 
-                    progress: 0 
-                  };
-                  
-                  return (
-                    <ImageCard
-                      key={file.id}
-                      uploadedFile={file}
-                      conversionStatus={conversionData.status}
-                      progress={conversionData.progress}
-                      downloadUrl={conversionData.downloadUrl}
-                      errorMessage={conversionData.errorMessage}
-                      convertedSize={conversionData.convertedSize}
-                      onRemove={removeFile}
-                      onDownload={handleDownload}
-                    />
-                  );
-                })}
-              </div>
-            </Card>
-          )}
 
           {/* Action Buttons */}
           {files.length > 0 && (
@@ -320,13 +232,16 @@ const Index = () => {
           )}
 
           {/* Conversion Progress */}
-          {/* Removed as it's now integrated into individual cards */}
+          <ConversionProgress 
+            files={conversionFiles}
+            onDownload={handleDownload}
+          />
         </div>
 
         {/* Footer Info */}
         <div className="mt-12 text-center text-sm text-muted-foreground">
           <p>
-            Processamento via n8n • Conversão para formato AVIF de alta qualidade
+            Conversão para formato AVIF de alta qualidade
           </p>
         </div>
       </div>
