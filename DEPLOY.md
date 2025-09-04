@@ -25,8 +25,10 @@ Certifique-se de que seu código está em um repositório Git (GitHub, GitLab, e
 - **Name**: `conversor-avif`
 - **Repository**: URL do seu repositório Git
 - **Branch**: `main` (ou sua branch principal)
-- **Build Command**: `npm run build`
+- **Build Command**: `npm ci && npm run build`
 - **Start Command**: `npm run preview`
+- **Internal Service Port**: `4173`
+- **Protocol**: `HTTP`
 
 #### Variáveis de Ambiente
 Não são necessárias variáveis de ambiente específicas para esta aplicação, pois a URL do webhook é configurada pelo usuário na interface.
