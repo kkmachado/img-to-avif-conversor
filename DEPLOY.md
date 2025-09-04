@@ -18,21 +18,21 @@ Certifique-se de que seu código está em um repositório Git (GitHub, GitLab, e
 
 1. Acesse seu painel Easypanel
 2. Clique em "Create Application"
-3. **Selecione "Github"** (se código estiver no GitHub) ou **"Git"** (para outros repositórios)
+3. Selecione "Node.js" como template
 4. Configure os seguintes parâmetros:
 
 #### Configurações Básicas
 - **Name**: `conversor-avif`
 - **Repository**: URL do seu repositório Git
 - **Branch**: `main` (ou sua branch principal)
-- **Build Command**: `npm ci && npm run build`
-- **Start Command**: `npm run preview -- --host 0.0.0.0 --port 4173`
+- **Build Command**: `npm run build`
+- **Start Command**: `npm run preview`
 
 #### Variáveis de Ambiente
 Não são necessárias variáveis de ambiente específicas para esta aplicação, pois a URL do webhook é configurada pelo usuário na interface.
 
 #### Port Configuration
-- **Internal Service Port**: `4173` (porta padrão do Vite preview)
+- **Port**: `4173` (porta padrão do Vite preview)
 
 ### 3. Configurar Build
 
