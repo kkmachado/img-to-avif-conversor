@@ -226,21 +226,21 @@ const Index = () => {
           <Card 
             {...getRootProps()} 
             className={cn(
-              "border-2 border-dashed border-border bg-gradient-subtle p-8 text-center cursor-pointer transition-all duration-300",
+              "border-2 border-dashed border-border bg-gradient-subtle p-6 text-center cursor-pointer transition-all duration-300",
               "hover:border-primary hover:shadow-glow",
               isDragActive && "border-primary bg-gradient-primary/10 shadow-glow"
             )}
           >
             <input {...getInputProps()} />
-            <div className="flex flex-col items-center space-y-4">
-              <div className="rounded-full bg-primary/10 p-4">
-                <Upload className="h-8 w-8 text-primary" />
+            <div className="flex flex-col items-center space-y-3">
+              <div className="rounded-full bg-primary/10 p-3">
+                <Upload className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold">
+                <h3 className="text-base font-semibold">
                   {isDragActive ? "Solte as imagens aqui" : "Selecione ou arraste imagens"}
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Formatos aceitos: PNG, JPG, JPEG
                 </p>
               </div>
