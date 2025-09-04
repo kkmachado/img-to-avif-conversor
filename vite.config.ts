@@ -12,6 +12,10 @@ export default defineConfig(({ mode }) => ({
   preview: {
     host: "0.0.0.0",
     port: 4173,
+    allowedHosts: [
+      "experimental-conversor-avif.krctcm.easypanel.host",
+      ".easypanel.host"
+    ],
   },
   plugins: [
     react(),
