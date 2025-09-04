@@ -256,15 +256,12 @@ const Index = () => {
               </div>
               <div>
                 <h3 className="text-base font-semibold">
-                  {isDragActive ? "Solte as imagens aqui" : "Selecione ou arraste imagens"}
+                  {isDragActive ? "Solte as imagens aqui" : "Clique aqui ou arraste imagens"}
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Formatos aceitos: PNG, JPG, JPEG
                 </p>
               </div>
-              <Button variant="outline" size="sm">
-                Escolher Arquivos
-              </Button>
             </div>
           </Card>
 
