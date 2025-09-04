@@ -326,7 +326,7 @@ const Index = () => {
         {/* Footer Info */}
         <div className="mt-12 text-center text-sm text-muted-foreground">
           <p>
-            Processamento via n8n • Conversão para formato AVIF de alta qualidade
+            Conversão para formato AVIF de alta qualidade
           </p>
         </div>
       </div>
